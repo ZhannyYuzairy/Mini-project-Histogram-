@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Histogram Specification Lab</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="top-badges">
+        <span class="badge cyan">Eksperimen Citra</span>
+        <span class="badge pink">Histogram Specification</span>
+      </div>
+      <h1>SpectraMorph Histogram Studio</h1>
+      <p>
+        Aplikasi HTML murni untuk memproses <b>Histogram Specification</b> langsung di browser.
+        Tampilan dibuat lebih modern dan berbeda dari aplikasi umum, tetapi tetap sesuai konsep program histogram specification:
+        upload citra, bentuk histogram target, lakukan pemetaan berdasarkan CDF, lalu tampilkan hasil dan histogramnya.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Panel Kontrol</h2>
+        <div class="sub">Unggah gambar, pilih gaya histogram target, atur penekanan distribusi, lalu proses hasilnya.</div>
+
+        <div class="upload-box">
+          <div class="file-name" id="fileName">Belum ada gambar dipilih</div>
+          <p>Format yang didukung: JPG, PNG, WEBP.</p>
+          <input type="file" id="imageInput" accept="image/*" hidden>
+          <button class="btn btn-primary" id="pickBtn">Pilih Gambar</button>
+        </div>
+
+        <div>
+          <b>Mode Histogram Specification</b>
+          <div class="mode-switch">
+            <button class="mode-btn active" data-mode="grayscale">Grayscale</button>
+            <button class="mode-btn" data-mode="rgb">RGB Per-Channel</button>
+          </div>
+        </div>
+
+        <div>
+          <b>Pilih Style Histogram Target</b>
+          <div class="styles">
+            <button class="style-btn active" data-style="cinematic">Cinematic</button>
+            <button class="style-btn" data-style="bright">Bright</button>
+            <button class="style-btn" data-style="dark">Dark</button>
+            <button class="style-btn" data-style="contrast">Contrast</button>
+            <button class="style-btn" data-style="midtone">Midtone</button>
+          </div>
+        </div>
+
+        <div class="range-wrap">
+          <label for="emphasis"><b>Penekanan Target:</b> <span id="emphasisValue">1.25</span>x</label>
+          <input type="range" id="emphasis" min="0.7" max="2.3" step="0.05" value="1.25">
+        </div>
+
+        <div>
+          <button class="btn btn-secondary" id="processBtn">Proses Histogram</button>
+          <button class="btn btn-dark" id="downloadBtn">Download Hasil</button>
+          <button class="btn btn-dark" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="status" id="statusBox">
+          Unggah citra grayscale atau citra berwarna untuk memulai eksperimen.
+        </div>
+        <div class="status secondary" id="modeInfoBox">
+          Mode aktif: Grayscale. Specification dilakukan terhadap intensitas abu-abu.
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="card">
+          <h2>Visualisasi Citra</h2>
+          <div class="sub">Citra input akan diubah ke grayscale, lalu dipetakan ulang sesuai histogram target.</div>
+          <div class="image-grid">
+            <div>
+              <p><b>Citra Input (Grayscale)</b></p>
+              <div class="canvas-frame"><canvas id="originalCanvas" class="image-canvas"></canvas></div>
+            </div>
+            <div>
+              <p><b>Citra Hasil Specification</b></p>
+              <div class="canvas-frame"><canvas id="resultCanvas" class="image-canvas"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Triad Histogram Deck</h2>
+          <div class="sub" id="histDescription">Histogram input, target, dan hasil ditampilkan berdampingan agar perubahan distribusi lebih mudah dianalisis.</div>
+          <div class="hist-grid">
+            <div>
+              <p><b id="inputHistLabel">Histogram Input</b></p>
+              <div class="canvas-frame"><canvas id="inputHist" width="340" height="190"></canvas></div>
+            </div>
+            <div>
+              <p><b id="targetHistLabel">Histogram Target</b></p>
+              <div class="canvas-frame"><canvas id="targetHist" width="340" height="190"></canvas></div>
+            </div>
+            <div>
+              <p><b id="resultHistLabel">Histogram Hasil</b></p>
+              <div class="canvas-frame"><canvas id="resultHist" width="340" height="190"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Statistik Intensitas</h2>
+          <div class="metric-grid">
+            <div class="metric">
+              <small>Mean Intensitas</small>
+              <strong id="meanStat">-</strong>
+            </div>
+            <div class="metric">
+              <small>Rentang Intensitas</small>
+              <strong id="rangeStat">-</strong>
+            </div>
+            <div class="metric">
+              <small>Mode Proses</small>
+              <strong id="modeStat">-</strong>
+            </div>
+            <div class="metric">
+              <small>Style Target</small>
+              <strong id="styleStat">-</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          <b>Catatan konsep:</b> Histogram specification bekerja dengan mencocokkan distribusi kumulatif citra input terhadap distribusi kumulatif target. Setelah itu dibuat pemetaan intensitas baru agar bentuk histogram hasil mendekati histogram target.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

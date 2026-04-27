@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Convolution (Mask Processing) - Final</title>
+  <style>
+    :root{
+      --bg:#f3f7fb;
+      --card:#ffffff;
+      --ink:#16202a;
+      --muted:#5e6b78;
+      --line:#d8e1ea;
+      --primary:#1f4e79;
+      --primary2:#2b6ba5;
+      --soft:#eef5fb;
+      --success:#0f8b6d;
+      --warn:#a45a00;
+      --shadow:0 12px 32px rgba(18,38,63,.10);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,#f7fbff 0%, #eef3f8 100%);
+      color:var(--ink);
+    }
+    .hero{
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      color:#fff;
+      padding:28px 18px;
+    }
+    .hero-inner{
+      max-width:1360px;
+      margin:0 auto;
+    }
+    .hero h1{
+      margin:0 0 10px;
+      font-size:clamp(1.6rem,2.1vw,2.25rem);
+    }
+    .hero p{
+      margin:0;
+      max-width:980px;
+      line-height:1.65;
+      color:rgba(255,255,255,.94);
+    }
+    .wrap{
+      max-width:1360px;
+      margin:20px auto 38px;
+      padding:0 16px;
+      display:grid;
+      grid-template-columns:390px 1fr;
+      gap:18px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+    }
+    .panel{padding:18px}
+    .stack{display:grid; gap:14px}
+    h2,h3{margin:0}
+    .hint,.desc,.status,.mini,.caption,.note{
+      line-height:1.62;
+      font-size:.95rem;
+    }
+    .hint,.status,.mini,.kernel-box{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:#fbfdff;
+    }
+    .desc{
+      background:var(--soft);
+      border:1px solid #d8e7f4;
+      border-radius:14px;
+      padding:12px 14px;
+    }
+    .field{display:grid; gap:8px}
+    label{font-weight:700}
+    input[type=file], select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:11px 12px;
+      background:#fff;
+      color:var(--ink);
+    }
+    input[type=file]{
+      border-style:dashed;
+      background:#fbfdff;
+    }
+    input[type=range]{
+      width:100%;
+      accent-color:var(--primary);
+    }
+    .value{font-size:.9rem; color:var(--muted)}
+    .hidden{display:none}
+    .btns{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+    button{
+      border:none;
+      border-radius:12px;
+      padding:12px 14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    button:hover{transform:translateY(-1px)}
+    button:disabled{opacity:.55; cursor:not-allowed; transform:none}
+    .primary{background:var(--primary); color:#fff}
+    .secondary{background:#eaf1f8; color:var(--primary)}
+    .success{background:var(--success); color:#fff}
+    .workspace{display:grid; gap:18px}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+      padding:18px;
+    }
+    .pane{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:#fbfdff;
+    }
+    .pane-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .badge{
+      font-size:.74rem;
+      padding:6px 8px;
+      border-radius:999px;
+      background:#edf4fb;
+      color:var(--primary);
+      font-weight:700;
+      white-space:nowrap;
+    }
+    canvas{
+      width:100%;
+      height:auto;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:
+        linear-gradient(45deg,#eef2f6 25%, transparent 25%),
+        linear-gradient(-45deg,#eef2f6 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #eef2f6 75%),
+        linear-gradient(-45deg, transparent 75%, #eef2f6 75%);
+      background-size:16px 16px;
+      background-position:0 0,0 8px,8px -8px,-8px 0;
+    }
+    .caption{color:var(--muted); margin-top:10px}
+    .foot{padding:0 18px 18px}
+    .mini-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+    }
+    .mini strong{display:block; margin-bottom:6px; color:var(--primary)}
+    .kernel-box strong{display:block; margin-bottom:8px; color:var(--primary)}
+    table.kernel{
+      border-collapse:collapse;
+      width:100%;
+      table-layout:fixed;
+      font-size:.86rem;
+      background:#fff;
+    }
+    table.kernel td{
+      border:1px solid var(--line);
+      padding:6px 4px;
+      text-align:center;
+      font-family:"Courier New", monospace;
+    }
+    .meta{
+      color:var(--muted);
+      font-size:.9rem;
+      margin-top:8px;
+      line-height:1.55;
+    }
+    .legend{
+      color:var(--warn);
+      font-size:.9rem;
+    }
+    .mono{font-family:"Courier New", monospace}
+    @media (max-width:1100px){
+      .wrap{grid-template-columns:1fr}
+      .grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>Program Final: Peningkatan Mutu Citra dengan Convolution (Mask Processing)</h1>
+      <p>
+        Versi ini dirapikan untuk tugas akademik: pemrosesan dilakukan pada resolusi asli gambar, filter linear
+        dihitung dengan kernel yang jelas, median dijelaskan sebagai filter non-linear berbasis ketetanggaan, dan
+        hasil divisualisasikan melalui citra asli, citra hasil, serta peta perbedaan.
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card panel">
+      <div class="stack">
+        <div>
+          <h2>Panel Kontrol</h2>
+          <div class="hint">
+            Gunakan gambar, pilih filter, atur parameternya, lalu tekan <strong>Terapkan</strong>.
+            Semua perhitungan dilakukan pada ukuran asli gambar, sedangkan kanvas hanya menampilkan pratinjau.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="imageInput">1) Pilih gambar</label>
+          <input type="file" id="imageInput" accept="image/*" />
+          <div class="value">Disarankan: JPG, PNG, BMP, atau WEBP.</div>
+        </div>
+
+        <div class="field">
+          <label for="filterSelect">2) Pilih filter</label>
+          <select id="filterSelect">
+            <option value="box">Box Filter (Convolution)</option>
+            <option value="gaussian">Gaussian Filter (Convolution)</option>
+            <option value="median">Median Filter (Non-linear)</option>
+            <option value="laplacian">Laplacian Sharpen (Convolution)</option>
+            <option value="highboost">High-Boost Sharpen (Mask Processing)</option>
+          </select>
+        </div>
+
+        <div class="desc" id="filterDescription"></div>
+
+        <div class="field">
+          <label for="kernelRange">Ukuran kernel</label>
+          <input type="range" id="kernelRange" min="3" max="11" step="2" value="3" />
+          <div class="value">Kernel aktif: <strong><span id="kernelValue">3</span> × <span id="kernelValue2">3</span></strong></div>
+        </div>
+
+        <div class="field" id="sigmaField">
+          <label for="sigmaRange">Sigma Gaussian</label>
+          <input type="range" id="sigmaRange" min="0.5" max="3.0" step="0.1" value="1.0" />
+          <div class="value">Sigma aktif: <strong><span id="sigmaValue">1.0</span></strong></div>
+        </div>
+
+        <div class="field hidden" id="laplacianField">
+          <label for="laplacianRange">Kekuatan Laplacian (α)</label>
+          <input type="range" id="laplacianRange" min="0.2" max="2.5" step="0.1" value="1.0" />
+          <div class="value">α aktif: <strong><span id="laplacianValue">1.0</span></strong></div>
+        </div>
+
+        <div class="field hidden" id="boostField">
+          <label for="boostRange">Faktor penguatan High-Boost (A)</label>
+          <input type="range" id="boostRange" min="1.0" max="5.0" step="0.1" value="1.8" />
+          <div class="value">A aktif: <strong><span id="boostValue">1.8</span></strong></div>
+        </div>
+
+        <div class="field">
+          <label for="lowpassSelect">Low-pass dasar untuk High-Boost</label>
+          <select id="lowpassSelect">
+            <option value="gaussian">Gaussian blur</option>
+            <option value="box">Box blur</option>
+          </select>
+          <div class="value">Opsi ini aktif hanya untuk High-Boost.</div>
+        </div>
+
+        <div class="kernel-box">
+          <strong>Pratinjau kernel / operasi</strong>
+          <div id="kernelPreview"></div>
+          <div class="meta" id="kernelMeta"></div>
+        </div>
+
+        <div class="btns">
+          <button class="primary" id="applyBtn">Terapkan</button>
+          <button class="secondary" id="resetBtn">Reset</button>
+          <button class="success" id="downloadBtn" disabled>Unduh Hasil</button>
+        </div>
+
+        <div class="status" id="statusBox"><strong>Status:</strong> Belum ada gambar yang dimuat.</div>
+
+        <div class="mini-grid">
+          <div class="mini">
+            <strong>Catatan konsep</strong>
+            Box, Gaussian, dan Laplacian adalah filter berbasis kernel. Median tetap relevan pada topik filtering,
+            tetapi tidak dihitung dengan konvolusi linear.
+          </div>
+          <div class="mini">
+            <strong>Saran uji</strong>
+            Pilih gambar yang memiliki tepi jelas, tekstur, atau noise. Efek smoothing dan sharpening akan lebih mudah terlihat.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card workspace">
+      <div class="grid">
+        <div class="pane">
+          <div class="pane-head">
+            <h3>Citra Asli (Grayscale)</h3>
+            <span class="badge">Input</span>
+          </div>
+          <canvas id="originalView"></canvas>
+          <div class="caption">Pratinjau citra grayscale yang dipakai sebagai masukan pengolahan.</div>
+        </div>
+
+        <div class="pane">
+          <div class="pane-head">
+            <h3>Hasil Filtering</h3>
+            <span class="badge">Output</span>
+          </div>
+          <canvas id="resultView"></canvas>
+          <div class="caption" id="resultCaption">Hasil akan tampil di sini setelah filter diterapkan.</div>
+        </div>
+
+        <div class="pane">
+          <div class="pane-head">
+            <h3>Peta Perbedaan</h3>
+            <span class="badge">Analisis</span>
+          </div>
+          <canvas id="diffView"></canvas>
+          <div class="caption">Peta beda absolut antara citra asli dan hasil filter. Area terang menunjukkan perubahan intensitas yang lebih besar.</div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <div class="note">
+          <strong>Interpretasi cepat:</strong> smoothing dipakai untuk mengurangi noise dan menghaluskan citra;
+          sharpening dipakai untuk menonjolkan tepi dan detail. Uji satu parameter dalam satu waktu agar analisisnya lebih jelas.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <canvas id="fullOriginal" class="hidden"></canvas>
+  <canvas id="fullResult" class="hidden"></canvas>
+  <canvas id="fullDiff" class="hidden"></canvas>
+
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const filterSelect = document.getElementById('filterSelect');
+    const kernelRange = document.getElementById('kernelRange');
+    const sigmaRange = document.getElementById('sigmaRange');
+    const laplacianRange = document.getElementById('laplacianRange');
+    const boostRange = document.getElementById('boostRange');
+    const lowpassSelect = document.getElementById('lowpassSelect');
+
+    const kernelValue = document.getElementById('kernelValue');
+    const kernelValue2 = document.getElementById('kernelValue2');
+    const sigmaValue = document.getElementById('sigmaValue');
+    const laplacianValue = document.getElementById('laplacianValue');
+    const boostValue = document.getElementById('boostValue');
+
+    const sigmaField = document.getElementById('sigmaField');
+    const laplacianField = document.getElementById('laplacianField');
+    const boostField = document.getElementById('boostField');
+
+    const filterDescription = document.getElementById('filterDescription');
+    const kernelPreview = document.getElementById('kernelPreview');
+    const kernelMeta = document.getElementById('kernelMeta');
+    const statusBox = document.getElementById('statusBox');
+    const resultCaption = document.getElementById('resultCaption');
+
+    const applyBtn = document.getElementById('applyBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    const originalView = document.getElementById('originalView');
+    const resultView = document.getElementById('resultView');
+    const diffView = document.getElementById('diffView');
+    const fullOriginal = document.getElementById('fullOriginal');
+    const fullResult = document.getElementById('fullResult');
+    const fullDiff = document.getElementById('fullDiff');
+
+    const oViewCtx = originalView.getContext('2d');
+    const rViewCtx = resultView.getContext('2d');
+    const dViewCtx = diffView.getContext('2d');
+    const oFullCtx = fullOriginal.getContext('2d');
+    const rFullCtx = fullResult.getContext('2d');
+    const dFullCtx = fullDiff.getContext('2d');
+
+    let loadedImage = null;
+    let originalGray = null;
+
+    const descriptions = {
+      box: `<strong>Box Filter</strong> melakukan smoothing linear dengan kernel bernilai seragam. Output dihasilkan dari rata-rata piksel pada jendela tetangga. Efeknya mudah diamati, tetapi tepi cenderung lebih blur.`,
+      gaussian: `<strong>Gaussian Filter</strong> melakukan smoothing linear dengan bobot terbesar di sekitar pusat kernel. Hasil blur biasanya lebih natural daripada Box Filter.`,
+      median: `<strong>Median Filter</strong> mengganti piksel pusat dengan nilai median dari tetangganya. Ini bukan konvolusi linear, tetapi sangat efektif untuk noise salt-and-pepper.`,
+      laplacian: `<strong>Laplacian Sharpen</strong> memakai kernel turunan kedua untuk menonjolkan perubahan intensitas. Pada program ini respons Laplacian ditambahkan kembali ke citra asli sehingga hasilnya menjadi penajaman, bukan hanya peta tepi.`,
+      highboost: `<strong>High-Boost Sharpen</strong> membentuk detail dari selisih antara citra asli dan citra low-pass, lalu memperkuatnya dengan faktor A. Semakin besar A, efek penajaman semakin kuat.`
+    };
+
+    function setStatus(msg) {
+      statusBox.innerHTML = `<strong>Status:</strong> ${msg}`;
+    }
+
+    function clamp(v) {
+      return Math.max(0, Math.min(255, v));
+    }
+
+    function toGrayImageData(imageData) {
+      const { data, width, height } = imageData;
+      const gray = new Uint8ClampedArray(width * height);
+      for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+        gray[p] = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+      }
+      return { gray, width, height };
+    }
+
+    function grayToImageData(gray, width, height) {
+      const out = new ImageData(width, height);
+      for (let i = 0, p = 0; p < gray.length; p++, i += 4) {
+        const v = gray[p];
+        out.data[i] = v;
+        out.data[i + 1] = v;
+        out.data[i + 2] = v;
+        out.data[i + 3] = 255;
+      }
+      return out;
+    }
+
+    function drawPreview(sourceCanvas, targetCanvas, targetCtx) {
+      const maxW = Math.min(targetCanvas.parentElement.clientWidth - 4, 430);
+      const scale = sourceCanvas.width > maxW ? maxW / sourceCanvas.width : 1;
+      targetCanvas.width = Math.max(1, Math.round(sourceCanvas.width * scale));
+      targetCanvas.height = Math.max(1, Math.round(sourceCanvas.height * scale));
+      targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+      targetCtx.drawImage(sourceCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
+    }
+
+    function applyConvolutionGray(gray, width, height, kernel, divisor = 1, offset = 0) {
+      const output = new Uint8ClampedArray(gray.length);
+      const kSize = Math.sqrt(kernel.length);
+      const half = Math.floor(kSize / 2);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let sum = 0;
+          for (let ky = -half; ky <= half; ky++) {
+            for (let kx = -half; kx <= half; kx++) {
+              const px = Math.min(width - 1, Math.max(0, x + kx));
+              const py = Math.min(height - 1, Math.max(0, y + ky));
+              const idx = py * width + px;
+              const kidx = (ky + half) * kSize + (kx + half);
+              sum += gray[idx] * kernel[kidx];
+            }
+          }
+          output[y * width + x] = clamp(sum / divisor + offset);
+        }
+      }
+      return output;
+    }
+
+    function applySignedConvolutionGray(gray, width, height, kernel) {
+      const output = new Float32Array(gray.length);
+      const kSize = Math.sqrt(kernel.length);
+      const half = Math.floor(kSize / 2);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let sum = 0;
+          for (let ky = -half; ky <= half; ky++) {
+            for (let kx = -half; kx <= half; kx++) {
+              const px = Math.min(width - 1, Math.max(0, x + kx));
+              const py = Math.min(height - 1, Math.max(0, y + ky));
+              const idx = py * width + px;
+              const kidx = (ky + half) * kSize + (kx + half);
+              sum += gray[idx] * kernel[kidx];
+            }
+          }
+          output[y * width + x] = sum;
+        }
+      }
+      return output;
+    }
+
+    function applyMedianGray(gray, width, height, size) {
+      const output = new Uint8ClampedArray(gray.length);
+      const half = Math.floor(size / 2);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const vals = [];
+          for (let ky = -half; ky <= half; ky++) {
+            for (let kx = -half; kx <= half; kx++) {
+              const px = Math.min(width - 1, Math.max(0, x + kx));
+              const py = Math.min(height - 1, Math.max(0, y + ky));
+              vals.push(gray[py * width + px]);
+            }
+          }
+          vals.sort((a, b) => a - b);
+          output[y * width + x] = vals[Math.floor(vals.length / 2)];
+        }
+      }
+      return output;
+    }
+
+    function createBoxKernel(size) {
+      return { kernel: new Array(size * size).fill(1), divisor: size * size };
+    }
+
+    function createGaussianKernel(size, sigma) {
+      const half = Math.floor(size / 2);
+      const kernel = [];
+      let sum = 0;
+      for (let y = -half; y <= half; y++) {
+        for (let x = -half; x <= half; x++) {
+          const v = Math.exp(-(x * x + y * y) / (2 * sigma * sigma));
+          kernel.push(v);
+          sum += v;
+        }
+      }
+      return { kernel, divisor: sum };
+    }
+
+    function normalizeKernel(kernel, divisor) {
+      return kernel.map(v => v / divisor);
+    }
+
+    function createHighBoostEquivalentKernel(size, A, mode) {
+      if (mode === 'box') {
+        const N = size * size;
+        const kernel = new Array(N).fill(-1 / N);
+        kernel[Math.floor(N / 2)] = A - 1 / N;
+        return kernel;
+      }
+      const sigma = Math.max(0.6, size / 4);
+      const { kernel, divisor } = createGaussianKernel(size, sigma);
+      const g = normalizeKernel(kernel, divisor);
+      const out = g.map(v => -v);
+      out[Math.floor(out.length / 2)] += A;
+      return out;
+    }
+
+    function applyLaplacianSharpen(gray, width, height, alpha) {
+      const kernel = [0, -1, 0, -1, 4, -1, 0, -1, 0];
+      const response = applySignedConvolutionGray(gray, width, height, kernel);
+      const out = new Uint8ClampedArray(gray.length);
+      for (let i = 0; i < gray.length; i++) {
+        out[i] = clamp(gray[i] + alpha * response[i]);
+      }
+      return out;
+    }
+
+    function applyHighBoost(gray, width, height, size, A, lowpassMode) {
+      let lowpass;
+      if (lowpassMode === 'box') {
+        const { kernel, divisor } = createBoxKernel(size);
+        lowpass = applyConvolutionGray(gray, width, height, kernel, divisor);
+      } else {
+        const sigma = Math.max(0.6, size / 4);
+        const { kernel, divisor } = createGaussianKernel(size, sigma);
+        lowpass = applyConvolutionGray(gray, width, height, kernel, divisor);
+      }
+
+      const out = new Uint8ClampedArray(gray.length);
+      for (let i = 0; i < gray.length; i++) {
+        out[i] = clamp(A * gray[i] - lowpass[i]);
+      }
+      return out;
+    }
+
+    function createDifferenceMap(original, result) {
+      const out = new Uint8ClampedArray(original.length);
+      for (let i = 0; i < original.length; i++) out[i] = Math.abs(result[i] - original[i]);
+      return out;
+    }
+
+    function formatNumber(v) {
+      const abs = Math.abs(v);
+      if (abs >= 10) return v.toFixed(1);
+      if (abs >= 1) return v.toFixed(2);
+      return v.toFixed(3);
+    }
+
+    function kernelToTable(kernel) {
+      const size = Math.round(Math.sqrt(kernel.length));
+      let html = '<table class="kernel">';
+      for (let y = 0; y < size; y++) {
+        html += '<tr>';
+        for (let x = 0; x < size; x++) {
+          html += `<td>${formatNumber(kernel[y * size + x])}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</table>';
+      return html;
+    }
+
+    function updateKernelPreview() {
+      const selected = filterSelect.value;
+      const size = parseInt(kernelRange.value, 10);
+      const sigma = parseFloat(sigmaRange.value);
+      const alpha = parseFloat(laplacianRange.value);
+      const A = parseFloat(boostRange.value);
+
+      if (selected === 'box') {
+        const { kernel, divisor } = createBoxKernel(size);
+        const norm = normalizeKernel(kernel, divisor);
+        kernelPreview.innerHTML = kernelToTable(norm);
+        kernelMeta.innerHTML = `Kernel Box dinormalisasi, setiap elemen bernilai <span class="mono">1/${size * size}</span>.`;
+      } else if (selected === 'gaussian') {
+        const { kernel, divisor } = createGaussianKernel(size, sigma);
+        const norm = normalizeKernel(kernel, divisor);
+        kernelPreview.innerHTML = kernelToTable(norm);
+        kernelMeta.innerHTML = `Kernel Gaussian ${size}×${size} dengan sigma <span class="mono">${sigma.toFixed(1)}</span>. Jumlah bobot dinormalisasi menjadi 1.`;
+      } else if (selected === 'median') {
+        kernelPreview.innerHTML = `<div class="legend">Median Filter tidak memakai kernel konvolusi tetap. Operasinya adalah mengambil nilai median dari seluruh piksel di dalam jendela ${size}×${size}.</div>`;
+        kernelMeta.innerHTML = `Urutan nilai piksel dalam jendela disortir, lalu piksel pusat diganti dengan median.`;
+      } else if (selected === 'laplacian') {
+        const kernel = [0, -1, 0, -1, 4, -1, 0, -1, 0];
+        kernelPreview.innerHTML = kernelToTable(kernel);
+        kernelMeta.innerHTML = `Kernel Laplacian 4-neighbor. Hasil akhir dihitung sebagai <span class="mono">g = f + α∇²f</span> dengan α = <span class="mono">${alpha.toFixed(1)}</span>.`;
+      } else if (selected === 'highboost') {
+        const eq = createHighBoostEquivalentKernel(size, A, lowpassSelect.value);
+        kernelPreview.innerHTML = kernelToTable(eq);
+        kernelMeta.innerHTML = `Kernel ekuivalen High-Boost untuk mode <span class="mono">${lowpassSelect.value}</span>. Hasil akhir dihitung sebagai <span class="mono">g = A·f - f<sub>LP</sub></span> dengan A = <span class="mono">${A.toFixed(1)}</span>.`;
+      }
+    }
+
+    function updateReadouts() {
+      kernelValue.textContent = kernelRange.value;
+      kernelValue2.textContent = kernelRange.value;
+      sigmaValue.textContent = parseFloat(sigmaRange.value).toFixed(1);
+      laplacianValue.textContent = parseFloat(laplacianRange.value).toFixed(1);
+      boostValue.textContent = parseFloat(boostRange.value).toFixed(1);
+      updateKernelPreview();
+    }
+
+    function updateControls() {
+      const selected = filterSelect.value;
+      filterDescription.innerHTML = descriptions[selected];
+
+      sigmaField.classList.toggle('hidden', selected !== 'gaussian');
+      laplacianField.classList.toggle('hidden', selected !== 'laplacian');
+      boostField.classList.toggle('hidden', selected !== 'highboost');
+
+      kernelRange.disabled = selected === 'laplacian';
+      sigmaRange.disabled = selected !== 'gaussian';
+      laplacianRange.disabled = selected !== 'laplacian';
+      boostRange.disabled = selected !== 'highboost';
+      lowpassSelect.disabled = selected !== 'highboost';
+
+      updateKernelPreview();
+    }
+
+    function renderAll(originalData, resultData, caption) {
+      const { width, height } = originalGray;
+
+      const originalImage = grayToImageData(originalData, width, height);
+      const resultImage = grayToImageData(resultData, width, height);
+      const diffImage = grayToImageData(createDifferenceMap(originalData, resultData), width, height);
+
+      oFullCtx.putImageData(originalImage, 0, 0);
+      rFullCtx.putImageData(resultImage, 0, 0);
+      dFullCtx.putImageData(diffImage, 0, 0);
+
+      drawPreview(fullOriginal, originalView, oViewCtx);
+      drawPreview(fullResult, resultView, rViewCtx);
+      drawPreview(fullDiff, diffView, dViewCtx);
+
+      resultCaption.textContent = caption;
+      downloadBtn.disabled = false;
+    }
+
+    function processImage() {
+      if (!originalGray) {
+        alert('Silakan pilih gambar terlebih dahulu.');
+        return;
+      }
+
+      const selected = filterSelect.value;
+      const size = parseInt(kernelRange.value, 10);
+      const sigma = parseFloat(sigmaRange.value);
+      const alpha = parseFloat(laplacianRange.value);
+      const A = parseFloat(boostRange.value);
+      const { gray, width, height } = originalGray;
+
+      let result = gray;
+      let caption = 'Belum ada hasil.';
+
+      if (selected === 'box') {
+        const { kernel, divisor } = createBoxKernel(size);
+        result = applyConvolutionGray(gray, width, height, kernel, divisor);
+        caption = `Box Filter ${size}×${size}: merata-ratakan intensitas piksel dalam jendela tetangga.`;
+      } else if (selected === 'gaussian') {
+        const { kernel, divisor } = createGaussianKernel(size, sigma);
+        result = applyConvolutionGray(gray, width, height, kernel, divisor);
+        caption = `Gaussian Filter ${size}×${size}, sigma ${sigma.toFixed(1)}: smoothing berbobot yang lebih halus.`;
+      } else if (selected === 'median') {
+        result = applyMedianGray(gray, width, height, size);
+        caption = `Median Filter ${size}×${size}: cocok untuk mengurangi noise salt-and-pepper.`;
+      } else if (selected === 'laplacian') {
+        result = applyLaplacianSharpen(gray, width, height, alpha);
+        caption = `Laplacian Sharpen α=${alpha.toFixed(1)}: menonjolkan detail dan tepi melalui turunan kedua.`;
+      } else if (selected === 'highboost') {
+        result = applyHighBoost(gray, width, height, size, A, lowpassSelect.value);
+        caption = `High-Boost A=${A.toFixed(1)} dengan ${lowpassSelect.value === 'gaussian' ? 'Gaussian' : 'Box'} low-pass: detail diperkuat terhadap citra asli.`;
+      }
+
+      renderAll(gray, result, caption);
+      setStatus(`Filter <strong>${filterSelect.options[filterSelect.selectedIndex].text}</strong> berhasil diterapkan pada gambar <strong>${width}×${height}</strong>.`);
+    }
+
+    function resetOutput() {
+      if (!originalGray) {
+        setStatus('Belum ada gambar yang dimuat.');
+        return;
+      }
+      renderAll(originalGray.gray, originalGray.gray, 'Pratinjau kembali ke citra asli grayscale.');
+      setStatus(`Pratinjau di-reset ke citra asli dengan resolusi <strong>${originalGray.width}×${originalGray.height}</strong>.`);
+    }
+
+    function handleFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          loadedImage = img;
+
+          fullOriginal.width = img.width;
+          fullOriginal.height = img.height;
+          fullResult.width = img.width;
+          fullResult.height = img.height;
+          fullDiff.width = img.width;
+          fullDiff.height = img.height;
+
+          oFullCtx.clearRect(0, 0, img.width, img.height);
+          oFullCtx.drawImage(img, 0, 0, img.width, img.height);
+
+          originalGray = toGrayImageData(oFullCtx.getImageData(0, 0, img.width, img.height));
+          renderAll(originalGray.gray, originalGray.gray, 'Gambar berhasil dimuat. Pilih filter lalu tekan Terapkan.');
+          setStatus(`Gambar berhasil dimuat: <strong>${file.name}</strong> dengan resolusi <strong>${img.width}×${img.height}</strong>.`);
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) handleFile(file);
+    });
+
+    kernelRange.addEventListener('input', updateReadouts);
+    sigmaRange.addEventListener('input', updateReadouts);
+    laplacianRange.addEventListener('input', updateReadouts);
+    boostRange.addEventListener('input', updateReadouts);
+    lowpassSelect.addEventListener('change', updateReadouts);
+
+    filterSelect.addEventListener('change', updateControls);
+    applyBtn.addEventListener('click', processImage);
+    resetBtn.addEventListener('click', resetOutput);
+
+    downloadBtn.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = fullResult.toDataURL('image/png');
+      a.download = `${filterSelect.value}_result.png`;
+      a.click();
+    });
+
+    updateReadouts();
+    updateControls();
+  </script>
+</body>
+</html>

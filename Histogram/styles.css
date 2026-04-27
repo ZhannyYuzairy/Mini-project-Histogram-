@@ -1,0 +1,207 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: radial-gradient(circle at top right, rgba(0,255,255,0.08), transparent 25%),
+              radial-gradient(circle at bottom left, rgba(255,0,200,0.08), transparent 25%),
+              #07111f;
+  color: #e8eefc;
+}
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.hero, .panel, .card, .note {
+  background: rgba(10, 18, 35, 0.82);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.hero {
+  padding: 28px;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: 40px;
+  letter-spacing: 0.5px;
+}
+.hero p {
+  margin: 0;
+  color: #b8c3da;
+  line-height: 1.7;
+  max-width: 900px;
+}
+.top-badges {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.badge {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.badge.cyan { background: rgba(34,211,238,0.12); color: #8be9fd; }
+.badge.pink { background: rgba(236,72,153,0.12); color: #f9a8d4; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 20px;
+}
+.panel {
+  padding: 22px;
+  height: fit-content;
+  position: sticky;
+  top: 18px;
+}
+.panel h2, .card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+.sub {
+  color: #9fb0cf;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.upload-box {
+  border: 1px dashed rgba(255,255,255,0.2);
+  background: rgba(3, 8, 20, 0.7);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.upload-box p {
+  margin: 8px 0;
+  color: #b8c3da;
+  line-height: 1.6;
+}
+.btn {
+  border: none;
+  border-radius: 16px;
+  padding: 12px 18px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s ease;
+  margin-right: 10px;
+  margin-top: 10px;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-primary { background: #22d3ee; color: #07111f; }
+.btn-secondary { background: #ec4899; color: white; }
+.btn-dark { background: #1e293b; color: white; border: 1px solid rgba(255,255,255,0.08); }
+
+.mode-switch, .styles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+.style-btn, .mode-btn {
+  background: #0a1325;
+  color: #d7e2f8;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.2s ease;
+}
+.style-btn.active, .mode-btn.active {
+  outline: 2px solid #22d3ee;
+  background: rgba(34,211,238,0.08);
+}
+
+.range-wrap {
+  margin: 16px 0 10px;
+}
+.status, .note {
+  margin-top: 18px;
+  padding: 16px;
+  line-height: 1.7;
+  color: #c8d4ec;
+}
+.status.secondary {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(7, 17, 31, 0.72);
+}
+.main {
+  display: grid;
+  gap: 20px;
+}
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.card {
+  padding: 20px;
+}
+.canvas-frame {
+  background: #020712;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  overflow: auto;
+  padding: 8px;
+}
+canvas.image-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.hist-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.metric {
+  background: rgba(2, 7, 18, 0.8);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 16px;
+}
+.metric small {
+  display: block;
+  color: #8fa2c7;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  font-size: 11px;
+}
+.metric strong {
+  font-size: 22px;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: #22d3ee;
+}
+.file-name {
+  font-weight: bold;
+  color: #ffffff;
+  word-break: break-word;
+}
+
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+  .panel { position: static; }
+  .hist-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .image-grid, .metric-grid { grid-template-columns: 1fr; }
+  .styles, .mode-switch { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 30px; }
+}
